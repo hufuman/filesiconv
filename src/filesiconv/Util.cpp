@@ -61,7 +61,41 @@ namespace Util
         return strResult;
     }
 
-    CString BrowserForFolder(IN HWND hWnd)
+    BOOL BrowseForFiles(ATL::CSimpleArray<CString>& listFiles, HWND hWnd)
+    {
+        listFiles.RemoveAll();
+        CFileDialog dlg(TRUE, 0, 0, OFN_NOCHANGEDIR | OFN_ENABLESIZING | OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT | OFN_NODEREFERENCELINKS);
+        if(dlg.DoModal(hWnd) != IDOK)
+            return FALSE;
+
+        CString strPath = dlg.m_szFileName;
+        CString strFilePath, strFileName;
+        size_t nLen = strPath.GetLength();
+
+        TCHAR* pFileName = dlg.m_szFileName + nLen + 1;
+
+        if(pFileName[0] == 0)
+        {
+            strFileName = pFileName;
+            strFilePath = strPath + pFileName;
+            listFiles.Add(strFilePath);
+            return TRUE;
+        }
+
+        strPath += _T("\\");
+        while(pFileName != NULL && pFileName[0] != 0)
+        {
+            strFileName = pFileName;
+            strFilePath = strPath + pFileName;
+            listFiles.Add(strFilePath);
+            nLen += strFileName.GetLength() + 1;
+            pFileName = dlg.m_szFileName + nLen + 1;
+        }
+
+        return TRUE;
+    }
+
+    CString BrowseForFolder(IN HWND hWnd)
     {
         CoInitialize(NULL);
         BROWSEINFO _info = {0};

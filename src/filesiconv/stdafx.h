@@ -27,6 +27,7 @@
 #include "..\WTL80\include\atlctrls.h"
 #include "..\WTL80\include\atlctrlx.h"
 #include "..\WTL80\include\atlwinx.h"
+#include "..\WTL80\include\atldlgs.h"
 
 
 extern CAppModule _Module;
