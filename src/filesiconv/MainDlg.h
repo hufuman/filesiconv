@@ -361,7 +361,7 @@ public:
         GetDlgItem(IDC_COMBO_TARGET).EnableWindow(bEnable);
         GetDlgItem(IDC_CHK_OVERWRITE).EnableWindow(bEnable);
 
-        if(IsDlgButtonChecked(IDC_CHK_OVERWRITE) == BST_CHECKED)
+        if(IsDlgButtonChecked(IDC_CHK_OVERWRITE) != BST_CHECKED)
         {
             GetDlgItem(IDC_EDIT_TARGET).EnableWindow(bEnable);
             GetDlgItem(IDC_BTN_BROWSE).EnableWindow(bEnable);
