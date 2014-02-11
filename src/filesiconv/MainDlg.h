@@ -9,6 +9,7 @@
 #include "AboutDlg.h"
 #include "Util.h"
 #include "WndLayout.h"
+#include "IconvWorker.h"
 
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CMessageFilter
@@ -19,6 +20,7 @@ public:
 
 	CMainDlg()
 	{
+        m_hThread = NULL;
 	}
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg)
@@ -27,7 +29,10 @@ public:
 	}
 
 	BEGIN_MSG_MAP(CMainDlg)
-		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+        MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+        MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
+        MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
+        MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 
@@ -35,9 +40,6 @@ public:
         COMMAND_ID_HANDLER(IDC_CHK_OVERWRITE, OnChkOverwrite)
         COMMAND_ID_HANDLER(IDC_BTN_BROWSE, OnBtnBrowse)
         COMMAND_ID_HANDLER(IDC_BTN_CONVERT, OnBtnConvert)
-
-		MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
-        MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
 
 	END_MSG_MAP()
 
@@ -85,8 +87,8 @@ public:
         m_ComboSourceCodepage.Attach(GetDlgItem(IDC_COMBO_SOURCE));
         m_ComboTargetCodepage.Attach(GetDlgItem(IDC_COMBO_TARGET));
 
-        int nIndex = m_ComboSourceCodepage.AddString(_T("Auto"));
-        m_ComboSourceCodepage.SetItemData(nIndex, -1);
+        int nIndex = m_ComboSourceCodepage.AddString(_T("Auto(According to BOM"));
+        m_ComboSourceCodepage.SetItemData(nIndex, CodeAuto);
 
         InitCodepages(m_ComboSourceCodepage);
         InitCodepages(m_ComboTargetCodepage);
@@ -100,20 +102,19 @@ public:
     {
         struct
         {
-            DWORD dwCodepageValue;
+            CodePageValue nCodepageValue;
             LPCTSTR szCodePageName;
         } codepages[] =
         {
-            {CP_ACP,    _T("System")},
-            {CP_UTF8,   _T("Utf8")},
-            {CP_UTF7,   _T("Utf7")},
-            {936,       _T("Chinese")},
+            {CodeAnsi,      _T("System")},
+            {CodeUtf8,      _T("Utf8")},
+            {CodeChinese,   _T("Chinese")},
         };
         int nIndex = 0;
         for(int i=0; i<_countof(codepages); ++ i)
         {
             nIndex = combo.AddString(codepages[i].szCodePageName);
-            combo.SetItemData(i, codepages[i].dwCodepageValue);
+            combo.SetItemData(i, codepages[i].nCodepageValue);
         }
         combo.SetCurSel(0);
     }
@@ -152,6 +153,39 @@ public:
 
     LRESULT OnBtnConvert(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
     {
+        CString strTemp;
+
+        // 0. check target path
+        BOOL bOverwrite = (IsDlgButtonChecked(IDC_CHK_OVERWRITE) == BST_CHECKED);
+        m_Worker.SetOverwrite(TRUE);
+        if(!bOverwrite)
+        {
+            GetDlgItemText(IDC_EDIT_TARGET, strTemp);
+            if(strTemp.IsEmpty())
+            {
+                CString strMsg;
+                strMsg.LoadString(IDS_ERR_EMPTY_TARGET);
+                MessageBox(strMsg, m_strAppName);
+                return 0;
+            }
+            m_Worker.SetTargetPath(strTemp);
+        }
+
+        // 1. disabled all controls
+        EnableUI(FALSE);
+
+        // 2. set info
+        int nSrcIndex = m_ComboSourceCodepage.GetCurSel();
+        int nDstIndex = m_ComboTargetCodepage.GetCurSel();
+        CodePageValue nSrcCodepage = static_cast<CodePageValue>(m_ComboSourceCodepage.GetItemData(nSrcIndex));
+        CodePageValue nDstCodepage = static_cast<CodePageValue>(m_ComboTargetCodepage.GetItemData(nDstIndex));
+        m_Worker.SetCodepage(nSrcCodepage, nDstCodepage);
+
+        m_Worker.SetFiles(&m_arrListFiles);
+
+        // 3. start thread
+        m_hThread = (HANDLE)_beginthreadex(0, 0, &ThreadProc, (void*)this, 0, 0);
+
         return 0;
     }
 
@@ -205,6 +239,16 @@ public:
         return 0;
     }
 
+    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        bHandled = FALSE;
+        m_Worker.Stop();
+        ::WaitForSingleObject(m_hThread, INFINITE);
+        ::CloseHandle(m_hThread);
+        m_hThread = NULL;
+        return 0;
+    }
+
     // Layout
     void InitLayout()
     {
@@ -243,21 +287,48 @@ public:
         if(strPath[strPath.GetLength() - 1] != _T('\\'))
             strPath += _T('\\');
 
-        CString strText;
-        int nCount = m_ListPaths.GetCount();
+        int nCount = m_arrListFiles.GetSize();
         for(int i=0; i<nCount; ++ i)
         {
-            m_ListPaths.GetText(i, strText);
-            if(strText.CompareNoCase(szPath) == 0)
+            if(m_arrListFiles[i].CompareNoCase(szPath) == 0)
                 return;
         }
         m_ListPaths.AddString(strPath);
+    }
+
+    static unsigned CALLBACK ThreadProc(void* pData)
+    {
+        CMainDlg* pThis = reinterpret_cast<CMainDlg*>(pData);
+
+        return 0;
+    }
+
+    void EnableUI(BOOL bEnable)
+    {
+        GetDlgItem(IDC_BTN_ADD_FILES).EnableWindow(bEnable);
+        GetDlgItem(IDC_BTN_REMOVE).EnableWindow(bEnable);
+        GetDlgItem(IDC_LIST_SRC).EnableWindow(bEnable);
+        GetDlgItem(IDC_COMBO_SOURCE).EnableWindow(bEnable);
+        GetDlgItem(IDC_COMBO_TARGET).EnableWindow(bEnable);
+        GetDlgItem(IDC_CHK_OVERWRITE).EnableWindow(bEnable);
+
+        if(IsDlgButtonChecked(IDC_CHK_OVERWRITE) == BST_CHECKED)
+        {
+            GetDlgItem(IDC_EDIT_TARGET).EnableWindow(bEnable);
+            GetDlgItem(IDC_BTN_BROWSE).EnableWindow(bEnable);
+        }
+
+        GetDlgItem(IDC_BTN_CONVERT).EnableWindow(bEnable);
     }
 
 private:
     CWndLayout      m_WndLayout;
     CString         m_strAppName;
 
+    HANDLE          m_hThread;
+    ATL::CSimpleArray<CString> m_arrListFiles;
+
+    CIconvWorker    m_Worker;
     CListBox        m_ListPaths;
     CComboBox       m_ComboSourceCodepage;
     CComboBox       m_ComboTargetCodepage;

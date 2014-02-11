@@ -9,6 +9,7 @@
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG_MAIN                 129
 #define IDS_ABOUTBOX                    130
+#define IDS_ERR_EMPTY_TARGET            131
 #define IDS_APP_NAME                    142
 #define IDC_LABEL_AUTHOR                1011
 #define IDC_LIST_SRC                    1016
@@ -23,6 +24,7 @@
 #define IDC_LABEL_STEP3                 1027
 #define IDC_LABEL_FINALLY               1028
 #define IDC_COMBO_SOURCE                1030
+#define IDC_BTN_REMOVE                  1031
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -32,7 +34,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        141
 #define _APS_NEXT_COMMAND_VALUE         32772
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_CONTROL_VALUE         1032
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

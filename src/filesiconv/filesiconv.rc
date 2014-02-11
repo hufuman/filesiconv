@@ -50,6 +50,7 @@ BEGIN
     DEFPUSHBUTTON   "Convert",IDC_BTN_CONVERT,139,196,50,14
     LTEXT           "Step 3, choose target codepage:",IDC_LABEL_STEP3,141,131,107,8
     COMBOBOX        IDC_COMBO_TARGET,141,144,108,66,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Remove",IDC_BTN_REMOVE,204,12,50,14
 END
 
 
@@ -80,6 +81,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_ABOUTBOX            "About..."
+    IDS_ERR_EMPTY_TARGET    "Please input target path first"
     IDS_APP_NAME            "FilesIconv"
 END
 

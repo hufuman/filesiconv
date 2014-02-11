@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\Bin\$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)..\..\Obj\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\Bin\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)..\Obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -89,8 +89,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\Bin\$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)..\..\Obj\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\Bin\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)..\Obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -171,6 +171,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\FileMap.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IconvWorker.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Main.cpp"
 				>
 			</File>
@@ -210,6 +218,14 @@
 			>
 			<File
 				RelativePath=".\AboutDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FileMap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IconvWorker.h"
 				>
 			</File>
 			<File
