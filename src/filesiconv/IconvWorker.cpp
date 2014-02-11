@@ -58,6 +58,12 @@ void CIconvWorker::SetOverwrite(BOOL bOverwrite)
 void CIconvWorker::SetTargetPath(LPCTSTR szTargetPath)
 {
     m_strTargetPath = szTargetPath;
+    m_strTargetPath.Replace(_T('/'), _T('\\'));
+    if(m_strTargetPath.GetLength() > 0
+        && m_strTargetPath[m_strTargetPath.GetLength() - 1] != _T('\\'))
+    {
+        m_strTargetPath += _T('\\');
+    }
 }
 
 BOOL CIconvWorker::Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimpleArray<CString>* outFiles)
@@ -66,10 +72,12 @@ BOOL CIconvWorker::Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimple
 
     if(failedFiles)
         failedFiles->RemoveAll();
+    if(outFiles)
+        outFiles->RemoveAll();
 
     CString strSrcTemp = GetTempFilePath();
     int nCount = m_arrFiles->GetSize();
-    for(int i=0; i<nCount; ++ i)
+    for(int i=0; !m_bStop && i<nCount; ++ i)
     {
         CString strSrc = (*m_arrFiles)[i];
 
@@ -91,15 +99,32 @@ BOOL CIconvWorker::Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimple
         else
             GetFileCodepage(pData, nSize);
 
+        CString strDstPath;
         CodePageValue nDstCodepage = m_nDstCodepage;
         if(nSrcCodepage == nDstCodepage)
         {
+            m.Close();
+            if(!m_bOverwrite)
+            {
+                // Copy to dst
+                strDstPath = GetDstPath(strSrc);
+                if(CopyFile(strSrc, strDstPath, FALSE))
+                {
+                    if(outFiles)
+                        outFiles->Add(strSrc);
+                }
+                else
+                {
+                    if(failedFiles)
+                        failedFiles->Add(strSrc);
+                }
+            }
             continue;
         }
 
-        CString strDstPath;
         for(;;)
         {
+            BOOL bResult = FALSE;
             if((nSrcCodepage == CodeUnicode && nDstCodepage != CodeUnicode)
                 || (nSrcCodepage != CodeUnicode && nDstCodepage == CodeUnicode))
             {
@@ -114,6 +139,7 @@ BOOL CIconvWorker::Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimple
                     break;
                 if(outFiles)
                     outFiles->Add(strDstPath);
+                bResult = TRUE;
             }
             else
             {
@@ -142,7 +168,11 @@ BOOL CIconvWorker::Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimple
                     break;
                 if(outFiles)
                     outFiles->Add(strDstPath);
+                bResult = TRUE;
             }
+
+            if(!bResult)
+                failedFiles->Add(strSrc);
 
             break;
         }

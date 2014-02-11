@@ -21,6 +21,8 @@ public:
 	CMainDlg()
 	{
         m_hThread = NULL;
+        m_bLastConvOk = FALSE;
+        m_uThreadEndMsg = ::RegisterWindowMessage(_T("iconv_thread_ended"));
 	}
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg)
@@ -33,10 +35,12 @@ public:
         MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
         MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+        MESSAGE_HANDLER(m_uThreadEndMsg, OnThreadEndMsg)
 
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 
         COMMAND_ID_HANDLER(IDC_BTN_ADD_FILES, OnBtnAddFiles)
+        COMMAND_ID_HANDLER(IDC_BTN_REMOVE, OnBtnRemove)
         COMMAND_ID_HANDLER(IDC_CHK_OVERWRITE, OnChkOverwrite)
         COMMAND_ID_HANDLER(IDC_BTN_BROWSE, OnBtnBrowse)
         COMMAND_ID_HANDLER(IDC_BTN_CONVERT, OnBtnConvert)
@@ -106,7 +110,8 @@ public:
             LPCTSTR szCodePageName;
         } codepages[] =
         {
-            {CodeAnsi,      _T("System")},
+            {CodeAnsi,      _T("Ansi")},
+            {CodeUnicode,   _T("Unicode")},
             {CodeUtf8,      _T("Utf8")},
             {CodeChinese,   _T("Chinese")},
         };
@@ -114,7 +119,7 @@ public:
         for(int i=0; i<_countof(codepages); ++ i)
         {
             nIndex = combo.AddString(codepages[i].szCodePageName);
-            combo.SetItemData(i, codepages[i].nCodepageValue);
+            combo.SetItemData(nIndex, codepages[i].nCodepageValue);
         }
         combo.SetCurSel(0);
     }
@@ -129,6 +134,20 @@ public:
             {
                 AddPath(listFiles[i]);
             }
+        }
+        return 0;
+    }
+
+    LRESULT OnBtnRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
+        int nCount = m_ListPaths.GetSelCount();
+        ATL::CSimpleArray<INT> arrItems;
+        for(int i=0; i<nCount; ++ i)
+            arrItems.Add(-1);
+        nCount = m_ListPaths.GetSelItems(nCount, arrItems.GetData());
+        for(int i=arrItems.GetSize() - 1; i >= 0; -- i)
+        {
+            m_ListPaths.DeleteString(arrItems[i]);
         }
         return 0;
     }
@@ -157,7 +176,7 @@ public:
 
         // 0. check target path
         BOOL bOverwrite = (IsDlgButtonChecked(IDC_CHK_OVERWRITE) == BST_CHECKED);
-        m_Worker.SetOverwrite(TRUE);
+        m_Worker.SetOverwrite(bOverwrite);
         if(!bOverwrite)
         {
             GetDlgItemText(IDC_EDIT_TARGET, strTemp);
@@ -239,6 +258,33 @@ public:
         return 0;
     }
 
+    LRESULT OnThreadEndMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+    {
+        if(m_hWnd == NULL)
+            return 0;
+
+        EnableUI(TRUE);
+
+        CString strMsg;
+        if(m_bLastConvOk)
+        {
+            strMsg = _T("All files converted");
+        }
+        else
+        {
+            strMsg = _T("The following files are failed to convert: \r\n");
+            int nSize = m_arrFailedFiles.GetSize();
+            for(int i=0; i<nSize; ++ i)
+            {
+                strMsg += _T("\t");
+                strMsg += m_arrFailedFiles[i];
+            }
+        }
+
+        MessageBox(strMsg, m_strAppName);
+        return 0;
+    }
+
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
     {
         bHandled = FALSE;
@@ -284,21 +330,24 @@ public:
 
         CString strPath(szPath);
         strPath.Replace(_T('/'), _T('\\'));
-        if(strPath[strPath.GetLength() - 1] != _T('\\'))
-            strPath += _T('\\');
 
         int nCount = m_arrListFiles.GetSize();
         for(int i=0; i<nCount; ++ i)
         {
-            if(m_arrListFiles[i].CompareNoCase(szPath) == 0)
+            if(m_arrListFiles[i].CompareNoCase(strPath) == 0)
                 return;
         }
+        m_arrListFiles.Add(strPath);
         m_ListPaths.AddString(strPath);
     }
 
     static unsigned CALLBACK ThreadProc(void* pData)
     {
         CMainDlg* pThis = reinterpret_cast<CMainDlg*>(pData);
+
+        pThis->m_bLastConvOk = pThis->m_Worker.Convert(&pThis->m_arrFailedFiles, &pThis->m_arrOutFiles);
+
+        ::PostMessage(pThis->m_hWnd, pThis->m_uThreadEndMsg, 0, 0);
 
         return 0;
     }
@@ -328,8 +377,14 @@ private:
     HANDLE          m_hThread;
     ATL::CSimpleArray<CString> m_arrListFiles;
 
+    BOOL            m_bLastConvOk;
+    ATL::CSimpleArray<CString> m_arrOutFiles;
+    ATL::CSimpleArray<CString> m_arrFailedFiles;
+
     CIconvWorker    m_Worker;
     CListBox        m_ListPaths;
     CComboBox       m_ComboSourceCodepage;
     CComboBox       m_ComboTargetCodepage;
+
+    UINT            m_uThreadEndMsg;
 };

@@ -98,41 +98,56 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
     } testcases[] =
     {
         // auto
-        {_T("ansi_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAuto, CodeUnicode},
-        {_T("ansi_enUS.txt"),       _T("utf8_enUS.txt"),        CodeAuto, CodeUtf8},
-        {_T("unicode_enUS.txt"),    _T("ansi_enUS.txt"),        CodeAuto, CodeAnsi},
-        {_T("unicode_enUS.txt"),    _T("utf8_enUS.txt"),        CodeAuto, CodeUtf8},
-        {_T("utf8_enUS.txt"),       _T("ansi_enUS.txt"),        CodeAuto, CodeAnsi},
-        {_T("utf8_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAuto, CodeUnicode},
+        /* 00 */ {_T("ansi_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAuto, CodeUnicode},
+        /* 01 */ {_T("ansi_enUS.txt"),       _T("utf8_enUS.txt"),        CodeAuto, CodeUtf8},
+        /* 02 */ {_T("unicode_enUS.txt"),    _T("ansi_enUS.txt"),        CodeAuto, CodeAnsi},
+        /* 03 */ {_T("unicode_enUS.txt"),    _T("utf8_enUS.txt"),        CodeAuto, CodeUtf8},
+        /* 04 */ {_T("utf8_enUS.txt"),       _T("ansi_enUS.txt"),        CodeAuto, CodeAnsi},
+        /* 05 */ {_T("utf8_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAuto, CodeUnicode},
 
-        {_T("unicode.txt"),         _T("chinese.txt"),          CodeAuto, CodeChinese},
-        {_T("unicode.txt"),         _T("utf8.txt"),             CodeAuto, CodeUtf8},
-        {_T("utf8.txt"),            _T("chinese.txt"),          CodeAuto, CodeChinese},
-        {_T("utf8.txt"),            _T("unicode.txt"),          CodeAuto, CodeUnicode},
+        /* 06 */ {_T("unicode.txt"),         _T("chinese.txt"),          CodeAuto, CodeChinese},
+        /* 07 */ {_T("unicode.txt"),         _T("utf8.txt"),             CodeAuto, CodeUtf8},
+        /* 08 */ {_T("utf8.txt"),            _T("chinese.txt"),          CodeAuto, CodeChinese},
+        /* 09 */ {_T("utf8.txt"),            _T("unicode.txt"),          CodeAuto, CodeUnicode},
 
         // multi bytes to wide chars
-        {_T("ansi_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAnsi, CodeUnicode},
-        {_T("utf8_enUS.txt"),       _T("unicode_enUS.txt"),     CodeUtf8, CodeUnicode},
-        {_T("chinese.txt"),         _T("unicode.txt"),          CodeChinese, CodeUnicode},
-        {_T("utf8.txt"),            _T("unicode.txt"),          CodeUtf8, CodeUnicode},
+        /* 10 */ {_T("ansi_enUS.txt"),       _T("unicode_enUS.txt"),     CodeAnsi, CodeUnicode},
+        /* 11 */ {_T("utf8_enUS.txt"),       _T("unicode_enUS.txt"),     CodeUtf8, CodeUnicode},
+        /* 12 */ {_T("chinese.txt"),         _T("unicode.txt"),          CodeChinese, CodeUnicode},
+        /* 13 */ {_T("utf8.txt"),            _T("unicode.txt"),          CodeUtf8, CodeUnicode},
 
         // wide chars to multi bytes
-        {_T("unicode_enUS.txt"),    _T("ansi_enUS.txt"),        CodeUnicode, CodeAnsi},
-        {_T("unicode_enUS.txt"),    _T("utf8_enUS.txt"),        CodeUnicode, CodeUtf8},
-        {_T("unicode.txt"),         _T("chinese.txt"),          CodeUnicode, CodeChinese},
-        {_T("unicode.txt"),         _T("utf8.txt"),             CodeUnicode, CodeUtf8},
+        /* 14 */ {_T("unicode_enUS.txt"),    _T("ansi_enUS.txt"),        CodeUnicode, CodeAnsi},
+        /* 15 */ {_T("unicode_enUS.txt"),    _T("utf8_enUS.txt"),        CodeUnicode, CodeUtf8},
+        /* 16 */ {_T("unicode.txt"),         _T("chinese.txt"),          CodeUnicode, CodeChinese},
+        /* 17 */ {_T("unicode.txt"),         _T("utf8.txt"),             CodeUnicode, CodeUtf8},
 
         // multi bytes to multi bytes
-        {_T("chinese.txt"),         _T("utf8.txt"),             CodeChinese, CodeUtf8},
-        {_T("utf8.txt"),            _T("chinese.txt"),          CodeUtf8, CodeChinese},
-        {_T("ansi_enUS.txt"),       _T("utf8_enUS.txt"),        CodeAnsi, CodeUtf8},
-        {_T("utf8_enUS.txt"),       _T("ansi_enUS.txt"),        CodeUtf8, CodeAnsi},
+        /* 18 */ {_T("chinese.txt"),         _T("utf8.txt"),             CodeChinese, CodeUtf8},
+        /* 19 */ {_T("utf8.txt"),            _T("chinese.txt"),          CodeUtf8, CodeChinese},
+        /* 20 */ {_T("ansi_enUS.txt"),       _T("utf8_enUS.txt"),        CodeAnsi, CodeUtf8},
+        /* 21 */ {_T("utf8_enUS.txt"),       _T("ansi_enUS.txt"),        CodeUtf8, CodeAnsi},
+
+        // auto same to same
+        /* 22 */ {_T("ansi_enUS.txt"),       _T("ansi_enUS.txt"),        CodeAuto, CodeAnsi},
+        /* 23 */ {_T("unicode.txt"),         _T("unicode.txt"),          CodeAuto, CodeUnicode},
+        /* 24 */ {_T("unicode_enUS.txt"),    _T("unicode_enUS.txt"),     CodeAuto, CodeUnicode},
+        /* 25 */ {_T("utf8.txt"),            _T("utf8.txt"),             CodeAuto, CodeUtf8},
+        /* 26 */ {_T("utf8_enUS.txt"),       _T("utf8_enUS.txt"),        CodeAuto, CodeUtf8},
+
+        // not auto same to same
+        /* 27 */ {_T("ansi_enUS.txt"),       _T("ansi_enUS.txt"),        CodeAnsi, CodeAnsi},
+        /* 28 */ {_T("chinese.txt"),         _T("chinese.txt"),          CodeChinese, CodeChinese},
+        /* 29 */ {_T("unicode.txt"),         _T("unicode.txt"),          CodeUnicode, CodeUnicode},
+        /* 30 */ {_T("unicode_enUS.txt"),    _T("unicode_enUS.txt"),     CodeUnicode, CodeUnicode},
+        /* 31 */ {_T("utf8.txt"),            _T("utf8.txt"),             CodeUtf8, CodeUtf8},
+        /* 32 */ {_T("utf8_enUS.txt"),       _T("utf8_enUS.txt"),        CodeUtf8, CodeUtf8},
     };
 
     CString strTempFile = CIconvWorker::GetTempFilePath();
     CString strOutputPath = strTestCasePath + _T("tmp\\");
 
-    int nFailedCount = 0;
+    BOOL bHasError = FALSE;
     for(int i=0; i<_countof(testcases); ++ i)
     {
         const stTestCases& test = testcases[i];
@@ -151,6 +166,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
         ATL::CSimpleArray<CString> failedFiles;
         ATL::CSimpleArray<CString> outFiles;
+        if(i == 23)
+        {
+            int a = 0;
+        }
         worker.Convert(&failedFiles, &outFiles);
         int nFailedCount = failedFiles.GetSize();
         if(nFailedCount == 0)
@@ -158,13 +177,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
             BOOL bEqual = CompareFile(strCorrectFile, outFiles[0]);
             if(!bEqual)
             {
-                ++ nFailedCount;
-                _tprintf(_T("Files are not same\r\n"));
+                bHasError = TRUE;
+                _tprintf(_T("TestCase[%d] failed: \r\n"), i);
+                _tprintf(_T("\tFiles are not same\r\n"));
             }
             continue;
         }
 
-        ++ nFailedCount;
+        bHasError = TRUE;
         _tprintf(_T("TestCase[%d] failed: \r\n"), i);
         for(int j=0; j<nFailedCount; ++ j)
         {
@@ -173,7 +193,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
         _tprintf(_T("\r\n\r\n"));
     }
 
-    if(nFailedCount == 0)
+    if(!bHasError)
     {
         _tprintf(_T("All Tests Passed\r\n"));
     }

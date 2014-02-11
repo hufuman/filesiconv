@@ -39,7 +39,7 @@ BEGIN
     LTEXT           "Step 1, add files or folders to convert:",IDC_STATIC,7,7,124,8
     LTEXT           "You can drop files or folders here tool.",IDC_STATIC,7,18,124,8
     PUSHBUTTON      "Add Files",IDC_BTN_ADD_FILES,141,12,50,14
-    LISTBOX         IDC_LIST_SRC,7,30,303,97,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_SRC,7,30,303,97,LBS_SORT | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Step 2, choose source codepage:",IDC_LABEL_STEP2,7,131,108,8
     COMBOBOX        IDC_COMBO_SOURCE,7,144,108,66,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Step 4, choose the target folder:",IDC_LABEL_STEP4,7,161,107,8
