@@ -149,6 +149,10 @@ public:
         {
             m_ListPaths.DeleteString(arrItems[i]);
         }
+        for(int i=arrItems.GetSize() - 1; i >= 0; -- i)
+        {
+            m_arrListFiles.RemoveAt(arrItems[i]);
+        }
         return 0;
     }
 
