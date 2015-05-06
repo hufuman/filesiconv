@@ -19,6 +19,7 @@ public:
     void SetCodepage(CodePageValue nSrcCodepage, CodePageValue nDstCodepage);
     void SetFiles(ATL::CSimpleArray<CString>* arrFiles);
     void SetOverwrite(BOOL bOverwrite);
+    void SetWriteBom(BOOL bWriteBom);
     void SetTargetPath(LPCTSTR szTargetPath);
     BOOL Convert(ATL::CSimpleArray<CString>* failedFiles, ATL::CSimpleArray<CString>* outFiles);
 
@@ -41,6 +42,7 @@ private:
     BOOL        m_bStop;
     CString     m_strTargetPath;
     BOOL        m_bOverwrite;
+    BOOL        m_bWriteBom;
 
     CodePageValue m_nSrcCodepage;
     CodePageValue m_nDstCodepage;

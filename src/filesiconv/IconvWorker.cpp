@@ -28,6 +28,7 @@ CIconvWorker::CIconvWorker(void)
     m_bStop = FALSE;
     m_strTargetPath = _T("");
     m_bOverwrite = FALSE;
+    m_bWriteBom = TRUE;
     m_nSrcCodepage = CodeAuto;
     m_nDstCodepage = CodeAuto;
     m_pBuffer = NULL;
@@ -53,6 +54,11 @@ void CIconvWorker::SetFiles(ATL::CSimpleArray<CString>* arrFiles)
 void CIconvWorker::SetOverwrite(BOOL bOverwrite)
 {
     m_bOverwrite = bOverwrite;
+}
+
+void CIconvWorker::SetWriteBom(BOOL bWriteBom)
+{
+    m_bWriteBom = bWriteBom;
 }
 
 void CIconvWorker::SetTargetPath(LPCTSTR szTargetPath)
@@ -296,17 +302,20 @@ BOOL CIconvWorker::ConvFile(const BYTE * pData, int nSize, LPCTSTR szDstPath, Co
 
     // Write BOM
 
-    if(nDstCodepage == CodeUnicode)
+    if(m_bWriteBom)
     {
-        bResult = WriteFileHelper(hFile, g_byUnicodeBOM, sizeof(g_byUnicodeBOM));
-    }
-    else if(nDstCodepage == CodeUtf8)
-    {
-        bResult = WriteFileHelper(hFile, g_byUtf8BOM, sizeof(g_byUtf8BOM));
-    }
-    else
-    {
-        bResult = TRUE;
+        if(nDstCodepage == CodeUnicode)
+        {
+            bResult = WriteFileHelper(hFile, g_byUnicodeBOM, sizeof(g_byUnicodeBOM));
+        }
+        else if(nDstCodepage == CodeUtf8)
+        {
+            bResult = WriteFileHelper(hFile, g_byUtf8BOM, sizeof(g_byUtf8BOM));
+        }
+        else
+        {
+            bResult = TRUE;
+        }
     }
 
     if(bResult)

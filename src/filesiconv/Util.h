@@ -11,4 +11,7 @@ namespace Util
 
     BOOL BrowseForFiles(ATL::CSimpleArray<CString>& listFiles, HWND hWnd);
     CString BrowseForFolder(IN HWND hWnd);
+
+    BOOL IsFolder(LPCTSTR szFolder);
+    BOOL IsFile(LPCTSTR szFile);
 };

@@ -181,6 +181,8 @@ public:
         // 0. check target path
         BOOL bOverwrite = (IsDlgButtonChecked(IDC_CHK_OVERWRITE) == BST_CHECKED);
         m_Worker.SetOverwrite(bOverwrite);
+        BOOL bWriteBom = (IsDlgButtonChecked(IDC_CHK_WRITE_BOM) == BST_CHECKED);
+        m_Worker.SetWriteBom(bWriteBom);
         if(!bOverwrite)
         {
             GetDlgItemText(IDC_EDIT_TARGET, strTemp);
@@ -316,8 +318,11 @@ public:
         m_WndLayout.AddControlById(IDC_EDIT_TARGET, Layout_HFill | Layout_Bottom);
         m_WndLayout.AddControlById(IDC_BTN_BROWSE, Layout_Right | Layout_Bottom);
 
+        m_WndLayout.AddControlById(IDC_CHK_WRITE_BOM, Layout_Left | Layout_Bottom);
         m_WndLayout.AddControlById(IDC_LABEL_FINALLY, Layout_Left | Layout_Bottom);
         m_WndLayout.AddControlById(IDC_BTN_CONVERT, Layout_Left | Layout_Bottom);
+
+        CheckDlgButton(IDC_CHK_WRITE_BOM, BST_CHECKED);
     }
 
     void AddPath(LPCTSTR szPath)
@@ -325,14 +330,43 @@ public:
         if(szPath == NULL || szPath[0] == 0)
             return;
 
-        DWORD dwAttr = ::GetFileAttributes(szPath);
-        if(dwAttr == INVALID_FILE_ATTRIBUTES)
-            return;
+        if(Util::IsFolder(szPath))
+            AddDirPath(szPath);
+        else
+            AddFilePath(szPath);
+    }
 
-        if((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+    void AddDirPath(LPCTSTR szDirPath)
+    {
+        CString strPath(szDirPath);
+        if(strPath[strPath.GetLength() - 1] != _T('\\'))
+            strPath += _T('\\');
+        CString strFilter(strPath);
+        strFilter += _T("*");
+        WIN32_FIND_DATA data;
+        HANDLE hFindFile = ::FindFirstFile(strFilter, &data);
+        if(hFindFile == INVALID_HANDLE_VALUE)
             return;
+        do 
+        {
+            if(_tcscmp(data.cFileName, _T(".")) == 0
+                || _tcscmp(data.cFileName, _T("..")) == 0)
+            {
+                continue;
+            }
+            CString strTemp(strPath);
+            strTemp += data.cFileName;
+            if(Util::IsFolder(strTemp))
+                AddDirPath(strTemp);
+            else
+                AddFilePath(strTemp);
+        } while (::FindNextFile(hFindFile, &data));
+        ::FindClose(hFindFile);
+    }
 
-        CString strPath(szPath);
+    void AddFilePath(LPCTSTR szFilePath)
+    {
+        CString strPath(szFilePath);
         strPath.Replace(_T('/'), _T('\\'));
 
         int nCount = m_arrListFiles.GetSize();

@@ -118,4 +118,16 @@ namespace Util
 
         return strResult;
     }
+
+    BOOL IsFolder(LPCTSTR szFolder)
+    {
+        DWORD dwAttr = ::GetFileAttributes(szFolder);
+        return (dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY);
+    }
+
+    BOOL IsFile(LPCTSTR szFile)
+    {
+        DWORD dwAttr = ::GetFileAttributes(szFile);
+        return (dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY);
+    }
 };
