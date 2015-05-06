@@ -298,7 +298,7 @@ BOOL CIconvWorker::ConvFile(const BYTE * pData, int nSize, LPCTSTR szDstPath, Co
     if(hFile == INVALID_HANDLE_VALUE)
         return FALSE;
 
-    BOOL bResult = FALSE;
+    BOOL bResult = TRUE;
 
     // Write BOM
 
@@ -311,10 +311,6 @@ BOOL CIconvWorker::ConvFile(const BYTE * pData, int nSize, LPCTSTR szDstPath, Co
         else if(nDstCodepage == CodeUtf8)
         {
             bResult = WriteFileHelper(hFile, g_byUtf8BOM, sizeof(g_byUtf8BOM));
-        }
-        else
-        {
-            bResult = TRUE;
         }
     }
 
